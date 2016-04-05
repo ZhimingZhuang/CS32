@@ -1,0 +1,116 @@
+/********************************************************************/
+1. 
+/********************************************************************/
+a)
+			      50
+			  
+		    20		        60
+
+	    10    	   40    	         70
+
+		15     30		      65     80  
+
+		    25    35			  75
+
+b)
+After deleting node 30:
+			      50
+			  
+		    20		        60
+
+	    10    	   40    	         70
+
+		15     25		      65     80  
+
+		          35			  75
+
+Then after deleting node 20:
+			      50
+			  
+		    15		        60
+
+	    10    	   40    	         70
+
+		       25		      65     80  
+
+		          35			  75
+
+c)
+In-order:	10 15 20 25 30 35 40 50 60 65 70 75 80
+
+Pre-order:	50 20 10 15 40 30 25 35 60 70 65 80 75
+
+Post-order:	15 10 25 35 30 40 20 65 75 80 70 60 50
+
+/********************************************************************/
+2. 
+/********************************************************************/
+a)
+
+	  	7
+
+    	3	        5
+
+    1       2      4 
+b)
+ _______________________
+| 7 | 3 | 5 | 1 | 2 | 4 |
+ ———————————————————————
+c)
+ ___________________
+| 5 | 3 | 4 | 1 | 2 |
+ ———————————————————
+
+/********************************************************************/
+3. 
+/********************************************************************/
+a)
+struct TreeNode{
+   int val;
+   TreeNode* left; 
+   TreeNode* right;
+   TreeNode* parent;
+   TreeNode(int x): val(x), left(nullptr), right(nullptr), parent(nullptr){};
+};
+
+b)
+Input: A value V to insert
+
+If the tree is empty
+    Allocate a newNode and put V into it
+    Point the root pointer to our new node. 
+else
+    start at the root of the tree.
+    while we’re not done
+	If V is equal to current node’s value:
+	    break;
+	else if V is less than current node’s value:
+	    If there is a left child, then go left
+	    else allocate a new node and put V into it and set current node’s left pointer 
+	    	 to new node and set the new node’s parent pointer to current node; 
+		 break; 
+	else 
+	    If there is a right child, then go right
+	    else allocate a new node and put V into it and set current node’s right pointe
+		 to new node and set the new node’s parent pointer to current node; 
+		 break;
+
+/********************************************************************/
+4. 
+/********************************************************************/
+
+a) O(C + S)
+
+b) O(log(C) + S)
+
+c) O(log(C) + log(S))
+
+d) O(log(S))
+
+e) O(1)
+
+f) O(log(C) + S)
+
+g) O(Slog(S))
+
+h) O(Clog(S))

@@ -1,0 +1,17 @@
+2.
+Because the Coord class doesn’t define its comparison operator such as “!=“. But the template member function in Map expected  the variable Coord passed in will have that operator defined. Thus, when the program do the comparison “p->m_value != value” in find function, it does not know how to compare these two.
+
+
+3
+b) Because with only one parameter and without using recursive function, we cannot divide and conquer the problem which means we cannot pass the current information about base class to deeper calls of listAll that can process subclasses.
+
+4
+a) O(N^3)
+Because there are three nested loops in this function and each loop will run N times. So the complexity of N*N*N would be N^3.
+
+b) O(N^3)
+Because in the worst case, the highest order term of N*(N-1)*N is still N^3.
+
+5. 
+O(N^2)
+Because the time complexity of commands “smaller->get(n, k, vsmall)” and “get(k, vbig)” are both O(N). Others are in O(1). Therefore, the final complexity N*N would be N^2.

@@ -1,0 +1,178 @@
+1. A description of the design of my doubly-linked list implementation. 
+
+I define a struct KevValue which contains members such as a KeyType, a ValueType and two KeyValue pointers that point to the previous node and the next node. Then I implement Map's member functions based on that struct. My list is not circular. In my Map class, I have two private parameters of KeyValue* type (head : point to the head of the linklist, trail : point to the end of the linklist). If the Map is empty, both head and trail will point to nullptr. My Map isn't in any particular order. When do insert, I simply insert the new node to the end;
+
+
+
+
+2. Pseudocode for non-trivial algorithms.
+
+Map::Map(const Map& src){
+    mapsize = src.mapsize;
+    KeyValue* p = src.head;
+
+    if(p points to a invalid node){
+        head = nullptr;
+    }else{
+        
+        use q1 point to record current node
+        use q2 point to record previous node and intialize it with nullptr
+        
+        while(p points to a valid node){
+            
+            Create a new node, put src.mapkey and src.mapvalue intp node,
+            and assign it to q1. Let q1's pre point to q2.
+            
+            if(p points to src.head)
+                head = q1;
+            
+            if(q2 points to a valid node)
+                Let q2's next pointer points to q1.
+            q2 = q1;
+            
+            p = address of the next node;
+        }
+        
+        Let q2's next pointer points to nullptr;
+        tail = q2;
+   	}
+
+ }
+
+ bool Map::erase(const KeyType& key){
+    use find function to locate key and return the pointer to cur
+
+    if(cur points to a invalid node){
+        return false;
+    }
+    
+    if(cur equals to the address of head){
+        if(cur->next points to a valid node){
+            delete and reset head;
+            mapsize--;
+        }else{
+			delete and reset head and tail to nullptr;
+            mapsize--;
+        }
+    }else if(cur equals to the address of tail){
+		delete and reset tail;
+        mapsize--;
+    }else{
+    	Link the cur->pre node to cur->next node and delete cur
+        mapsize--;
+    }
+
+    return true;
+}
+
+void subtract(const Map& m1, const Map& m2, Map& result){
+    KeyType tmpkey;
+    ValueType tmpvalue;
+    Let result equal to m1;
+    
+    for(i from 0 to result.size()){
+        get the i the key of result and put it in tmpkey
+        if(m2 contains tmpkey ){
+            erase tmpkey in result;
+            i--;
+        }
+    }
+}
+
+bool combine(const Map& m1, const Map& m2, Map& result){
+    KeyType tmpkey;
+    ValueType tmpvalue1, tmpvalue2;
+    bool flag = true;
+    
+    Let result equal to m1;
+    for(i from 0 to m2.size()){
+        get the i the key and value of m2 and put it in tmpkey and tmpvalue1
+        
+        if(tmpkey doesn't exist in result){
+            insert tmpkey and tmpvalue1 into result
+        }else{
+            if(tmpvalue1 is not equal tmpvalue2 for the same tmpkey){
+                erase tmpkey in result;
+                set flag to false;
+            }
+        }
+        
+    }
+    return flag;
+}
+ 
+
+
+
+3. A list of test cases that would thoroughly test the functions.
+
+    Map m;
+    assert(m.empty());                  // test empty
+    assert(m.insert("Fred", 123));      // test insert
+    assert(m.insert("Ethel", 456));     // test insert
+    assert(m.size() == 2);              // test size
+    double d = 42;
+    assert(m.get("Fred", d)  &&  d == 123);     // test get
+    d = 42;
+    string s1;
+    assert(m.get(0, s1, d)  &&
+           ((s1 == "Fred"  &&  d == 123)  ||  (s1 == "Ethel"  &&  d == 456)));  // test get
+    string s2;
+    assert(m.get(1, s2, d)  &&  s1 != s2  &&
+           ((s2 == "Fred"  &&  d == 123)  ||  (s2 == "Ethel"  &&  d == 456)));  // test get
+    
+    
+    assert(m.contains(s2));             // stest contains
+    assert(!m.get(10, s2, d));          // nothing to get
+    s2 = "zhu";
+    assert(!m.get(s2, d));              // nothing to get
+    assert(!m.erase("zhu"));            // nothing to erase
+    assert(!m.contains(s2));            // contains nothing
+    assert(m.erase("Fred"));            // test erase
+    assert(m.size() == 1);              // test whether erase is successful or not
+    string s3;
+    assert(m.get(0, s3, d) && d == 456 && s3 == "Ethel");   // test whether erase is successful or not
+    
+    assert(m.insert("Fred", 123));
+    assert(m.insertOrUpdate("Fred", 789));                  // test insertOrUpdate
+    assert(m.get(1, s3, d) && d == 789 && s3 == "Fred");
+    
+    Map m2 = m;
+    assert(m2.get(0, s3, d) && d == 456 && s3 == "Ethel");
+    assert(m2.get(1, s3, d) && d == 789 && s3 == "Fred");
+    assert(m2.erase("Fred"));
+    assert(m.get(1, s3, d) && d == 789 && s3 == "Fred");    // test assignment constructor
+    
+    Map m3(m);
+    assert(m3.get(0, s3, d) && d == 456 && s3 == "Ethel");
+    assert(m3.get(1, s3, d) && d == 789 && s3 == "Fred");
+    assert(m3.erase("Fred"));
+    assert(m.get(1, s3, d) && d == 789 && s3 == "Fred");
+    assert(m3.erase("Ethel") && m3.size() == 0);            // test copy constructor
+
+    
+    Map cm1, cm2, result;
+    cm1.insert("Fred",123);
+    cm1.insert("Lucy",789);
+    
+    cm2.insert("Lucy",789);
+    cm2.insert("Susan",222);
+    
+    // test swap
+    cm1.swap(cm2);
+    assert(cm1.get(0, s1, d) && s1 == "Lucy" && d == 789);
+    assert(cm1.get(1, s1, d) && s1 == "Susan" && d == 222);
+    cm1.swap(cm2);
+    
+    // test combine
+    assert(combine(cm1, cm2, result));
+    assert(result.get(0, s1, d) && s1 == "Fred" && d == 123);
+    assert(result.get(1, s1, d) && s1 == "Lucy" && d == 789);
+    assert(result.get(2, s1, d) && s1 == "Susan" && d == 222);
+    assert(!result.get(3, s1, d));
+    
+    // test subtract
+    subtract(cm1, cm2, result);
+    assert(result.get(0, s2, d) && s2 == "Fred" && d == 123);
+    s2 = "Lucy";
+    assert(!result.get(s2, d)); 

@@ -1,0 +1,383 @@
+Report of project 3
+
+/********************************************************************/
+1. 
+/********************************************************************/
+My design of Actor hierarchy is kind of like:
+
+GraphObject
+    Actor
+	DynamicActor
+            Squirt
+            FrackMan
+            RegularProtester
+                HardCoreProtester
+        Dirt
+        Boulder
+        Squirt
+        OilBarrel
+        GoldNugget
+        SonarKit
+        WaterPool
+
+First, let’s talk about the public member functions in my Actor.h and Actor.cpp.
+
+(1) Actor Class
+    Base class of all other classes.
+
+I put all the game object classes except frackman in a vector<Actor> in StudentWord.
+So I need to define some common member functions so as to be called by Actor class even though it has different derived classes.
+
+class Actor : public GraphObject{
+public:
+    Actor(StudentWorld *world, int imageID, int startX, int startY, Direction dir, double size, unsigned int depth);
+    virtual ~Actor() = default;
+
+    virtual void doSomething() = 0;  
+    // I decide to define doSomething because each type of actor can define their own special version of it. I make it pure because the base class won’t have its own version of doSomething.
+
+    bool getStatus() const;
+    // Get the life status of the current actor, so that I can know that whether the current actor is dead or not through this base class.
+
+    string getName() const; 
+    // Get the name of the current actor, so that I can know what kind of the actor is it. For example it may return “Boulder”, “Gold”, “Squirt” and so on.
+
+    void setName(string ID); 
+    // Each derived class of actor must has its name like “Boulder”, “Protester” etc. I can use this function to set its name. This function will be run in each constructor of each class’ constructor.
+
+    void setDead();
+    // When some actor is dead, I use this function to set its life status to dead. Every derived actor could be set dead. 
+
+    virtual void afterPickGold(){} 
+    // Define each actor would do after pick the gold. In this case, only the regular and hardcore protester will have their special versions of this function. Other actors don’t. Therefore I make it not pure virtual. I put this function in base class, so that it can be called by the element of StudentWorld’s vector<Actor>.
+
+    virtual void setLeaveState(){}
+    // Set the actor to leave. Only the regular and hardcore protester will have their special versions of this function. Other actors don’t. Therefore I make it not pure virtual. 
+
+    virtual bool getLeaveState() const{return false;} 
+    // Get the leave state status of the actor. The same reason as above.
+
+    virtual bool getFallState() const{return false;}
+    // Get the fall state status of the actor. In this case , only the boulder will have its special content. Others don’t. Define it virtual for the same reason.
+
+    virtual void setStunState(){}  
+    // Set the actor to stun. In this case, only the regular and hardcore protester will have their special versions of this function. Other actors don’t. Define it virtual for the same reason.
+
+    StudentWorld * getWorld() const;
+    // This will return a pointer of the StudentWord so that I can know the real time information of the game. 
+    
+};
+
+(2) Class Dirt
+class Dirt : public Actor{
+public:
+    Dirt(StudentWorld *world, int startX, int startY);
+    virtual ~Dirt() = default;
+
+    virtual void doSomething();
+    // Define dirt’s own version of doSomething.
+};
+
+(3) Class Boulder
+class Boulder : public Actor{
+public:
+    Boulder(StudentWorld *world, int startX, int startY);
+    virtual ~Boulder() = default;
+
+    virtual void doSomething();
+    // Define Boulder’s own version of doSomething.
+
+    virtual bool getFallState() const;
+    // To know whether the boulder is in the fall state or not.
+};
+
+(4) Class Oil
+// Class Oil
+class Oil : public Actor{
+public:
+    Oil(StudentWorld *world, int startX, int startY);
+    virtual ~Oil() = default;
+
+    virtual void doSomething();
+    // Define Oil’s own version of doSomething.
+};
+
+(5) Class Gold Nugget
+class Gold : public Actor{
+public:
+    Gold(StudentWorld *world, int startX, int startY);
+    virtual ~Gold() = default;
+
+    virtual void doSomething();
+    // Define Gold Nugget’s own version of doSomething.
+};
+
+(6) Class Sonar Kit
+class Sonar : public Actor{
+public:
+    Sonar(StudentWorld *world);
+    virtual ~Sonar() = default;
+
+    virtual void doSomething();
+    // Define Sonar’s own version of doSomething.
+
+};
+
+(7) Class Water Pool
+class Water : public Actor{
+public:
+    Water(StudentWorld *world, int startX, int startY);
+    virtual ~Water() = default;
+
+    virtual void doSomething();
+    // Define Water Pool’s own version of doSomething.
+};
+
+(8) Class DynamicActor
+    Base class for moving actors such as squirt, protesters. They share some common features.  
+
+class DynamicActor : public Actor{
+public:
+    DynamicActor(int HP, StudentWorld *world, int imageID, int startX, int startY, Direction dir, double size, unsigned int depth);
+    virtual ~DynamicActor() = default;
+    virtual void doSomething() = 0;
+
+    bool noBlockOnDire(int x, int y, Direction dire);
+    // All moving actors have to check that whether they could move to next step on its current direction. So I write this function. 
+	
+    bool moveInField(int x, int y);
+    // Check that the x, y coordinate are valid in the oil field
+
+    int getHP() const;
+    // Get the HP information of the actor
+
+    virtual void playDeadSound(){}
+    virtual void playAnnoySound(){}
+    virtual void givePointsOnDeath(){}
+    void changeHP(int x);
+    // The first three virtual functions above will do the things as their names suggest. These three functions will be called in function changeHP. Because when the protester’s HP is smaller or equal to 0, it will play dead sound and give points to trackman. When its HP decrease, it will play annoyed sound.  
+     
+    virtual void setLeaveState(){}
+    virtual bool getLeaveState() const{return false;}
+
+};
+
+(9) Class Regular Protester
+class Protester : public DynamicActor{
+public:
+    Protester(StudentWorld *world, int HP, int ID);
+    virtual ~Protester()= default;
+
+    virtual void doSomething();
+    // Define Regular Protester’s own version of doSomething. 
+
+    virtual void afterPickGold();
+    // Define Regular Protester’s action after picking a temporary gold nugget.
+
+    virtual void playDeadSound();
+    virtual void playAnnoySound();
+    virtual void givePointsOnDeath();
+    // Define its own version of these functions.
+
+    void doWhenNotRest();
+    bool doneWhenRest();
+    // There two functions are the two important parts of doSomething. All the things that a  protester should do in rest state, stun state, annoyed state, leave state, are put in function doneWhenRest() and it will return true if it did something in one of the above states. The other things that a protester should do are put in doWhenNotRest().These two functions can be called when I write Hardcore protester’ doSomething().
+
+    int pathToDes(int x, int y, int fx, int fy);
+    // It calculates the optimal path from point (x, y) to point (fx, fy) using bfs and save it in a vector<Node> path. And if there is a path existing, it will return the total steps from point (x, y) to point(fx, fy). Otherwise, it will return -1.
+
+    struct Node{
+        int x,y;
+    };
+    Node kthNodeToDes(int k);
+    // It can return the k Node in path that we calculate above.
+     
+    void setTicks();
+    // Set the ticks to rest state to its max value. This function can be called in defining Hardcore protester’s movement using cell phone. 
+
+    virtual void setStunState();
+    virtual void setLeaveState();
+    virtual bool getLeaveState() const;
+ 
+}
+
+(10) Class Hardcore Protester
+class Hardcore: public Protester{
+public:
+    Hardcore(StudentWorld*world, int HP, int ID);
+    virtual ~Hardcore() = default;
+
+    virtual void doSomething();
+    // Define Hardcore protester’s own version of doSomething.
+    virtual void givePointsOnDeath();
+};
+
+(11) Class Squirt
+class Squirt : public DynamicActor{
+public:
+    Squirt(StudentWorld *world, int startX, int startY, Direction dire);
+    virtual ~Squirt() = default;
+
+    virtual void doSomething();
+    // Define squirt’s own version of doSomething.
+};
+
+(12) Class Frackman
+class Frackman : public DynamicActor{
+public:
+    Frackman(StudentWorld *world);
+    virtual ~Frackman() = default;
+
+    virtual void doSomething();
+    // Define Frackman’s own version of doSomething.
+    virtual void playDeadSound();
+};
+
+(13) Class StudentWorld
+class StudentWorld : public GameWorld
+{
+public:
+	StudentWorld(std::string assetDir)
+	 : GameWorld(assetDir), dirt(64, vector<Dirt*>(64, nullptr))
+	{
+        
+	}
+    ~StudentWorld();
+    
+    virtual int init();
+    virtual int move();
+    virtual void cleanUp();
+    // These three functions will do what the spec required.
+
+    bool deleteDirt(int i, int j);
+    // If there is a dirt exist in coordinate (j,i) and after deleting it,  the function will return true, otherwise return false.
+
+    bool isDirt(int i, int j);
+    // Check whether there is a dirt at coordinate (j,i)
+ 
+    int actorAtCoor(int x, int y, string actorID);
+    // If there is an actor at coordinate (x, y) whose name is actorID, this function will return the index in which the actor located in the vector<Actor> actor. If not, it will return -1. This function is important, since it provide a interface to know the game detail of each actor.
+
+    void setActorDead(int k);
+    // Set the kth actor in vector<Actor> to dead.
+
+    void setActorPick(int k);
+    // It will make the kth actor call its afterPickGold() function to act after picking a gold. In this case, it will work only for regular protester and hardcore protester.
+
+    void setActorLeave(int k);
+    // Set the kth actor in vector<Actor> to leave state. Again, it will work only for protesters.
+
+    void setActorStun(int k);
+    // Set the kth actor in vector<Actor> to stun state. Again, it will work only for protesters. Other actors will do nothing.
+
+    bool getActorLeave(int k);
+    // Check the kth actor in vector<Actor>  whether it is in leave state or not. Again, it will work only for protesters. Other actors will do nothing.
+
+    bool getActorFall(int k);
+    // Check the kth actor in vector<Actor>  whether it is in fall state or not. Again, it will work only for boulders. Other actors will do nothing.
+   
+    int getFrackmanX() const;
+    int getFrackmanY() const; 
+    // Return the coordinate information of frackman.
+
+    void changeFrackmanHP(int x);
+    // Change the frackman’s HP.
+
+    void updateInv(int x, char c);
+    // Update the item c in the inventory where ‘o’ means oil, ‘g’ means gold, ‘w’ means water, ’s’ means sonar kit.    
+
+    void updateText();
+    // Update the game information.
+
+    bool isBeenSet(int x ,int y);
+    // Check that whether there is an object in a radius of 6 away from coordinate (x, y).    
+
+    void newSonarWater();
+    // Add new sonar or water under some possibility to the oil field.
+
+    void throwGold(int x, int y);
+    // Add a temporary gold nugget at coordinate (x, y).
+
+    void activateSonar(int x, int y);
+    // It will activate a sonar at coordinate (x, y).
+
+    void createNewSquirt(int x, int y, Actor::Direction dire);
+    // Create a new squirt in (x, y) facing dire. 
+
+    void addNewProtester();
+    // Add new protester under some possibility to the oil field.
+}
+
+/********************************************************************/
+2. 
+/********************************************************************/
+
+I think I finished all the functionality mentioned in the specprelim.
+
+/********************************************************************/
+3. 
+/********************************************************************/
+
+Design decisions:
+
+(1)
+It is said that a gold nugget cannot be picked by more than one protesters. So I the gold-picked action in the gold class’ doSomething().  Once it is picked by any protester, it will be set dead. But when writing the squirt attacking action. It is said that it can attack more than one protesters. So I put this movement in the protester’s doSomething(). Therefore, no matter how many protesters, once they are in a radius of 3 from squirt, they will all be attacked.
+
+(2)
+Since both Squirt, Protesters(Regular or Hardcore) share some same features. They can move in the oil field without dirt. So I write a class called DynamicActor for the base class of these three classes. All of them have HP and can be changed. It is easy to think in the case of protesters. For squirt, I consider the HP as its traveling distance. Each step of movement will decrease its “HP”.
+ 
+(3)
+In order to avoid duplicate codes in Regular Protester and Hardcore Protester. I set regular protester for the base class of Hardcore Protester. And I write the common functions as public member functions in Regular Protester.
+
+(4)
+I use queue-based maze searching algorithm in two situation. One is when Hardcore Protester use cell phone to locate Frackman, the other is when both kind of protesters exit the oil field with optimal path. The computed optimal whole path will be stored in a vector. And the path will be calculated only one time when the a dead protester to exit.
+
+Assumptions and the way I do:
+
+(1)
+It was ambiguous what to do in situation when creating new sonar in each tick under small possibility. What if in the current tick, it try to create a new sonar on the top left corner and the last sonar was still there? In this case, I decided to let the two sonars overlapped. 
+
+(2)
+It was ambiguous what to do in situation when the dead protester try to figure out a path to exit without being blocked by the boulder. Does the falling boulder count? In this case, I didn’t consider the boulder in fall state when a dead protester find the path. Otherwise, there may be no path to exit.
+
+(3)
+I assume that the user will not change the size of game interface which is 64*64. If changes, my program will not work correctly. Because most of the distances and coordinates we use to judge in game are absolute.
+
+/********************************************************************/
+4. 
+/********************************************************************/
+
+Since the base class’s correctness could be showed through its derived class. So here I only demonstrate the way that I tested my derived classes.
+For the following test way, if there is something wrong, I will print the parameter I use to debug. 
+
+(1) Class Dirt
+I first let the screen filled with dirt and then delete some dirt as the spec required. Then I run the game to see whether the deleted dirt are in right places. Since a dirt will do nothing, I do no other test here.
+
+(2) Class Boulder
+After creating a boulder, I make my frackman walk to it to see whether it could be blocked by it. And the frackman dig all the dirt below it to see whether it fall down correctly and cause the frackman beneath to bead.
+
+(3) Class Oil
+After creating a oil, I make my frackman walk dig the dirt to see whether it will be visible in radius of 3 and whether it could be picked by frackman.
+
+(4) Class Gold Nugget
+After creating a gold nugget, I make my frackman walk dig the dirt to see whether it will be visible in radius of 3 and whether it could be picked by frackman. After I finished the protester, I put a temporary gold nugget in front of a protester to see whether it could be picked by protesters not frackman again.
+
+(5) Class Sonar Kit
+I press z or Z key to see whether a frackman can use sonar to detect the gold nugget and oil around him. Then I create a sonar on top left to test whether frackman can pick it other than protesters.
+
+(6) Class Water Pool
+After creating a water pool, I make my frack man walk to it to see whether it can be picked by frackman and whether it will be disappeared when in temporary state.
+
+(7) Class Regular Protester
+(8) Class Hardcore Protester
+For testing, I create a regular/hardcore protester in the oil field without dirt. First, I check whether it could walk in a correct way, such as turn perpendicular run, detect frackman in the vertical/horizontal way. Then, I make the frackman to attack the protester  to see whether it will be stunned or let the boulder fall on it or throw gold beside it  to see whether it will give up and follow the optimal way to exit. 
+Especially, to test hardcore protester’s cell phone searching function, I make the frackman approach it to see whether it will detect and walk toward to man.
+
+(9) Class Squirt
+I press tab key to see whether a sonar could be created in the right place and travel its whole path and the I shoot the boulder or dirt to make sure it could be blocked. Finally, I shoot the protesters to see whether it could attack protester.
+
+(10) Class Frackman
+First, I press direction to see whether a frackman can move and dig in oil field correctly. Then I press other keys to check whether each of their corresponding functions work correctly. After that I would walk towards a protester, to see whether it could be shouted and decrease its HP by 20%.
+
+(11) Class StudentWorld
+Each time I add a new class, I will create it in init() and put its doSomething() in move() to check whether it works fine. For creating some class located in random coordinates, I will run the game to check its proper location. Other details can be showed through other classes.

@@ -1,0 +1,33 @@
+2. The first 12 (r,c) coordinates popped off the stack by the algorithm:
+Stack:
+6  4
+6  3
+6  5
+7  5
+8  5
+8  6
+8  7
+8  8
+7  8
+6  6
+5  4
+4  4
+
+
+4. The first 12 (r,c) coordinates popped from the queue in your queue-based algorithm:
+Que:
+6  4
+5  4
+6  5
+6  3
+4  4
+6  6
+7  5
+3  4
+4  5
+8  5
+2  4
+4  6
+
+Because using stack to traverse the maze is to apply DFS while using queue is to apply
+BFS. DFS would try a path until no way to go each time but BFS will traverse its around points. This is why the visited cells in the maze are in a different order.

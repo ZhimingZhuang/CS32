@@ -1,0 +1,48 @@
+Report of project 4
+
+/********************************************************************/
+1. 
+/********************************************************************/
+I implemented all the functions that require and I think there are no bugs.
+
+
+/********************************************************************/
+2. 
+/********************************************************************/
+First, let’s talk about class DiskMultiMap.
+
+Here is my disk-based hash table:
+
+I use the first 4 bytes to store the total number of buckets, 4 bytes to store the total number of diskNodes in the hash table, and sizeof(BinaryFile::offset) bytes to store the head of a link list which links the deleted diskNodes.
+
+Erase:
+Each time I remove a diskNode, I will push the deleted diskNode to the front of deleted link list and update the head in disk file. Then I can easily to reuse the deleted diskNodes just by extracting it from the deleted list in O(1).
+
+Insert:
+I include <functional> to use c++’s own hash function to calculate which bucket I would use and insert them to the right bucket. Simply just push it to the head of link list of that bucket in O(1).
+
+Search:
+Use hash function to locate the bucket and the traverse the link list of the bucket.
+
+Iterator:
+I store the filename we use as a private parameter in DiskMultiMap which can be passed to Iterator. So then the iterator could visit the disk-based hash table to extract the data of diskNode when implementing operator ++. Also, I define a copy constructor. The Iterator has a private parameter BinaryFile::Offset to record the offset of the current diskNode. 
+
+Then, let’s talk about class IntelWeb.
+
+I create 3 private DiskMultiMap fromMap(record the original interaction between entities), toMap(record the reverse interaction between entities), and preMap(record all the entities’ prevalence). And I have a map<string, int> prevalence to calculate the prevalence which can be stored into preMap after analyze. 
+
+Ingest:
+When reading the telemetry File, I store all entities into my DiskMultiMap data structure and calculate the prevalence at the same time. Then I store the prevalence information into preMap which can be used in crawl. In DiskMultiMap, I use key to store the entity and value to store the prevalence. 
+
+Crawl:
+I use bfs to traverse all the tainted entities using queue. I only push the entities that considered to be tainted in the queue. And I have two sets set<string> uniqueEntries and set<InteractionTuple> uniqueInteractions to record the unique bad entries and interactions. For each entity popped from queue, I search its tainted entities in both fromMap and toMap based on the rules in spec. Finally, I will copy these data from sets to the output vectors. 
+
+Purge:
+I have three vector<MultiMapTuple>foundInTo, foundInFrom, foundInPre in my function. The first two ones are to record the bad entities found in toMap and fromMap. Then, I erase them in toMap and fromMap. For the last one,  I first use a map<string, unsigned int> Pre to analyze the prevalence of the erased entities, store their information in foundInPre, and then I update the preMap. 
+
+Note:
+For the case that there maybe two different keys sharing the same bucket in open hash table because they may have the same remainder of their hash function value, each time when I use iterator to search an entity and traverse the iterator, I will double check whether the key in the diskNode is the entity that we search. 
+/********************************************************************/
+3. 
+/********************************************************************/
+I think I satisfy all the big-O requirement. 
